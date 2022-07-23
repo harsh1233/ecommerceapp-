@@ -1,41 +1,39 @@
 <?php
 
 session_start();
-if(!isset($_SESSION["uid"])){
-	header("location:index.php");
+if (!isset($_SESSION["uid"])) {
+    header("location:index.php");
 }
 
 if (isset($_GET["st"])) {
 
-	# code...
-	$trx_id = $_GET["tx"];
-		$p_st = $_GET["st"];
-		$amt = $_GET["amt"];
-		$cc = $_GET["cc"];
-		$cm_user_id = $_GET["cm"];
-		$c_amt = $_COOKIE["ta"];
-	if ($p_st == "Completed") {
+    # code...
+    $trx_id = $_GET["tx"];
+    $p_st = $_GET["st"];
+    $amt = $_GET["amt"];
+    $cc = $_GET["cc"];
+    $cm_user_id = $_GET["cm"];
+    $c_amt = $_COOKIE["ta"];
+    if ($p_st == "Completed") {
 
-		
+        include_once "db.php";
+        $sql = "SELECT p_id,qty FROM cart WHERE user_id = '$cm_user_id'";
+        $query = mysqli_query($con, $sql);
+        if (mysqli_num_rows($query) > 0) {
+            # code...
+            while ($row = mysqli_fetch_array($query)) {
+                $product_id[] = $row["p_id"];
+                $qty[] = $row["qty"];
+            }
 
-		include_once("db.php");
-		$sql = "SELECT p_id,qty FROM cart WHERE user_id = '$cm_user_id'";
-		$query = mysqli_query($con,$sql);
-		if (mysqli_num_rows($query) > 0) {
-			# code...
-			while ($row=mysqli_fetch_array($query)) {
-			$product_id[] = $row["p_id"];
-			$qty[] = $row["qty"];
-			}
+            for ($i = 0; $i < count($product_id); $i++) {
+                $sql = "INSERT INTO orders (user_id,product_id,qty,trx_id,p_status) VALUES ('$cm_user_id','" . $product_id[$i] . "','" . $qty[$i] . "','$trx_id','$p_st')";
+                mysqli_query($con, $sql);
+            }
 
-			for ($i=0; $i < count($product_id); $i++) { 
-				$sql = "INSERT INTO orders (user_id,product_id,qty,trx_id,p_status) VALUES ('$cm_user_id','".$product_id[$i]."','".$qty[$i]."','$trx_id','$p_st')";
-				mysqli_query($con,$sql);
-			}
-
-			$sql = "DELETE FROM cart WHERE user_id = '$cm_user_id'";
-			if (mysqli_query($con,$sql)) {
-				?>
+            $sql = "DELETE FROM cart WHERE user_id = '$cm_user_id'";
+            if (mysqli_query($con, $sql)) {
+                ?>
 					<!DOCTYPE html>
 					<html>
 						<head>
@@ -51,7 +49,7 @@ if (isset($_GET["st"])) {
 						</head>
 					<body>
 						<div class="navbar navbar-inverse navbar-fixed-top">
-							<div class="container-fluid">	
+							<div class="container-fluid">
 								<div class="navbar-header">
 									<a href="#" class="navbar-brand">Ecommerce</a>
 								</div>
@@ -65,7 +63,7 @@ if (isset($_GET["st"])) {
 						<p><br/></p>
 						<p><br/></p>
 						<div class="container-fluid">
-						
+
 							<div class="row">
 								<div class="col-md-2"></div>
 								<div class="col-md-8">
@@ -74,7 +72,7 @@ if (isset($_GET["st"])) {
 										<div class="panel-body">
 											<h1>Thankyou </h1>
 											<hr/>
-											<p>Hello <?php echo "<b>".$_SESSION["name"]."</b>"; ?>,Your payment process is 
+											<p>Hello <?php echo "<b>" . $_SESSION["name"] . "</b>"; ?>,Your payment process is
 											successfully completed and your Transaction id is <b><?php echo $trx_id; ?></b><br/>
 											you can continue your Shopping <br/></p>
 											<a href="index.php" class="btn btn-success btn-lg">Continue Shopping</a>
@@ -89,15 +87,13 @@ if (isset($_GET["st"])) {
 					</html>
 
 				<?php
-			}
-		}else{
-			header("location:index.php");
-		}
-		
-	}
 }
+        } else {
+            header("location:index.php");
+        }
 
-
+    }
+}
 
 ?>
 
